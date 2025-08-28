@@ -214,7 +214,7 @@ with st.sidebar:
 st.title("Simulador de Capacidade do Laboratório Central")
 
 def calcular_total_recursos(config):
-    return sum(v for k, v in config.items() if 'CELULA' not in k and 'PAINEL' not in k)
+    return sum(v for k, v in config.items())
 
 if categoria_selecionada == "Compressão Triaxial":
 
@@ -232,11 +232,11 @@ if categoria_selecionada == "Compressão Triaxial":
 
     with col1:
         quantidade_jobs = st.number_input("Quantidade de ensaios:", min_value=1, max_value=5000, value=576, step=1)
-        prazo_dias = st.number_input("Prazo ideal (dias):", min_value=1, max_value=365, value=45, step=1)
+        prazo_dias = st.number_input("Prazo ideal (dias):", min_value=1, max_value=365, value=30, step=1)
 
     with col2:
-        num_simulacoes = st.number_input("Número de simulações:", min_value=1, max_value=10, value=1, step=1)
-        tolerancia_prazo = st.slider("Tolerância no prazo (%):", min_value=0, max_value=50, value=10, step=1, format="%d%%")
+        num_simulacoes = st.number_input("Número de simulações:", min_value=1, max_value=10, value=2, step=1)
+        tolerancia_prazo = st.slider("Tolerância no prazo (%):", min_value=0, max_value=50, value=5, step=1, format="%d%%")
 
     st.markdown("---")
     
@@ -522,4 +522,5 @@ if categoria_selecionada == "Compressão Triaxial":
             st.pyplot(fig_espera)
 else:
     st.info("Por favor, selecione uma categoria de ensaio na barra lateral para começar.")
+
 
