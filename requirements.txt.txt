@@ -1,9 +1,0 @@
-streamlit
-pandas
-numpy
-matplotlib
-matplotlib.pyplot
-matplotlib.colors
-math
-re
-time
