@@ -92,8 +92,7 @@ def gerar_demanda_simulada(num_jobs, prazo):
 st.set_page_config(
     page_title="Simulador de Capacidade",
     layout="wide",
-    # --- CORREÇÃO FUNDAMENTAL AQUI ---
-    # Define o tema da aplicação, forçando a cor primária para todos os widgets
+    page_icon="CHMMS_icone-34.png"
     initial_sidebar_state="expanded",
     menu_items={
         'About': "Simulador de Capacidade desenvolvido para o Laboratório Central."
