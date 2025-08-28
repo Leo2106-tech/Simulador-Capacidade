@@ -332,7 +332,7 @@ if categoria_selecionada == "Compressão Triaxial":
 
             with col_otimizada:
                 # Calcula a diferença em dias
-                diferenca_dias = (makespan_medio / 24) - (makespan_real / 24)
+                diferenca_dias = (makespan_medio / 24) - (makespan_real_medio / 24)
                 
                 # Mostra o resultado com a configuração otimizada e a melhoria
                 st.metric(
@@ -522,5 +522,6 @@ if categoria_selecionada == "Compressão Triaxial":
             st.pyplot(fig_espera)
 else:
     st.info("Por favor, selecione uma categoria de ensaio na barra lateral para começar.")
+
 
 
