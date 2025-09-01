@@ -4,7 +4,7 @@ import re
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-def calcular_parametros_completos(df, PRAZO_DIAS, DEVIATION_TOLERANCE, num_simu):
+def calcular_parametros_completos(df, PRAZO_DIAS, DEVIATION_TOLERANCE, num_simu, recursos_fixos):
     HORAS_POR_DIA = 24
     PRAZO_EM_HORAS = PRAZO_DIAS * HORAS_POR_DIA
     prazo_aceitavel_em_horas = PRAZO_EM_HORAS * (1 + DEVIATION_TOLERANCE)
@@ -273,17 +273,30 @@ def calcular_parametros_completos(df, PRAZO_DIAS, DEVIATION_TOLERANCE, num_simu)
             df_gargalo_real = df_gargalo.copy()
 
         recurso_gargalo = None
-        celulas_gargalo = df_gargalo[df_gargalo['Recurso'].isin(recursos_celulas) & (df_gargalo['Utilizacao'] > 80)]
+        # Regra 1: Verificar Células com utilização > 80% que NÃO ESTÃO na lista de fixos
+        celulas_gargalo = df_gargalo[
+            df_gargalo['Recurso'].isin(recursos_celulas) & 
+            (df_gargalo['Utilizacao'] > 80) &
+            (~df_gargalo['Recurso'].isin(recursos_fixos)) # <-- Nova condição
+        ]
+        
         if not celulas_gargalo.empty:
             gargalo = celulas_gargalo.sort_values(by='Utilizacao', ascending=False).iloc[0]
             recurso_gargalo = gargalo['Recurso']
             print(f"  Gargalo de Célula identificado: '{recurso_gargalo}' (Utilização: {gargalo['Utilizacao']:.1f}%).")
         else:
-            recursos_elegiveis = df_gargalo[~df_gargalo['Recurso'].str.contains("PAINEL") & ~df_gargalo['Recurso'].isin(recursos_celulas)]
+            # Regra 2: Encontrar o recurso com maior Score de Gargalo que NÃO ESTÁ na lista de fixos
+            recursos_elegiveis = df_gargalo[
+                ~df_gargalo['Recurso'].isin(recursos_celulas) &
+                ~df_gargalo['Recurso'].isin(recursos_fixos) # <-- Nova condição
+            ]
+            
             if not recursos_elegiveis.empty and recursos_elegiveis['Score_Gargalo'].max() > 0:
+                # Pega o melhor candidato da lista já filtrada
                 gargalo = recursos_elegiveis.sort_values(by='Score_Gargalo', ascending=False).iloc[0]
                 recurso_gargalo = gargalo['Recurso']
                 print(f"  Gargalo de Processo identificado: '{recurso_gargalo}' (Score: {gargalo['Score_Gargalo']:.2f}, Util: {gargalo['Utilizacao']:.1f}%, Espera: {gargalo['Tempo_Espera']:.1f}h).")
+
             else:
                 print("  Não foi possível identificar um gargalo claro. Parando.")
                 break

@@ -181,6 +181,34 @@ def aplicar_estilo_personalizado():
                 --text-color: {cor_texto_claro};
                 --primary-hover: #5A728A; /* Define a cor para o estado hover */
             }}
+                        [data-testid="stMultiSelect"] [data-baseweb="tag"] {{
+                background-color: {cor_botao} !important;
+                color: {cor_texto_claro} !important;
+                border-radius: 6px;
+                border: none;
+            }}
+
+            /* Altera a cor do "X" de remover */
+            [data-testid="stMultiSelect"] [data-baseweb="tag"] svg {{
+                fill: {cor_texto_claro} !important;
+            }}
+
+            /* Hover nos itens selecionados */
+            [data-testid="stMultiSelect"] [data-baseweb="tag"]:hover {{
+                background-color: {cor_botao_hover} !important;
+            }}
+
+            /* Botões de incremento/decremento do number_input */
+            [data-testid="stNumberInput"] button {{
+                background-color: {cor_botao} !important;  /* azul principal */
+                color: {cor_texto_claro} !important;
+            }}
+
+            /* Hover dos botões */
+            [data-testid="stNumberInput"] button:hover {{
+                background-color: {cor_botao_hover} !important;  /* azul mais claro no hover */
+                color: {cor_texto_claro} !important;
+            }}
             
         </style>
     """
@@ -214,7 +242,7 @@ with st.sidebar:
 st.title("Simulador de Capacidade do Laboratório Central")
 
 def calcular_total_recursos(config):
-    return sum(v for k, v in config.items())
+    return sum(v for k, v in config.items() if 'CELULA' not in k and 'PAINEL' not in k)
 
 if categoria_selecionada == "Compressão Triaxial":
 
@@ -232,11 +260,23 @@ if categoria_selecionada == "Compressão Triaxial":
 
     with col1:
         quantidade_jobs = st.number_input("Quantidade de ensaios:", min_value=1, max_value=5000, value=576, step=1)
-        prazo_dias = st.number_input("Prazo ideal (dias):", min_value=1, max_value=365, value=30, step=1)
+        prazo_dias = st.number_input("Prazo ideal (dias):", min_value=1, max_value=365, value=22, step=1)
 
     with col2:
-        num_simulacoes = st.number_input("Número de simulações:", min_value=1, max_value=10, value=2, step=1)
-        tolerancia_prazo = st.slider("Tolerância no prazo (%):", min_value=0, max_value=50, value=5, step=1, format="%d%%")
+        num_simulacoes = st.number_input("Número de simulações:", min_value=1, max_value=10, value=1, step=1)
+        #tolerancia_prazo = st.slider("Tolerância no prazo (%):", min_value=0, max_value=50, value=10, step=1, format="%d%%")
+        recursos_dimensionaveis = [
+            'BANCADA_PREP_ATIVA', 'BANCADA_TARUGO', 'BANCADA_MONTAGEM',
+            'LINHA_SAT_CO2', 'BANCADA_DESM', 'PRENSA_ESPECIAL_ANISO_CICLICO',
+            'PRENSA_ROMP_ISO', 'BANCADA_ADEN_CONVENCIONAL', 'CELULA_CONVENCIONAL',
+            'CELULA_CICLICO', 'CELULA_BENDER', 'PAINEL_SAT_H2O','PAINEL_SAT_CP'
+        ]
+        recursos_fixos = st.multiselect(
+            "Recursos com capacidade fixa (não otimizar):",
+            options=sorted(recursos_dimensionaveis),
+            help="Selecione os recursos que você NÃO quer que o simulador aumente a capacidade."
+        )
+    tolerancia_prazo = 5
 
     st.markdown("---")
     
@@ -261,7 +301,7 @@ if categoria_selecionada == "Compressão Triaxial":
             barra_de_progresso.progress(i / num_simulacoes, text=f"Executando Simulação Mestra {i+1}/{num_simulacoes}...")
             
             df = gerar_demanda_simulada(quantidade_jobs,prazo_dias)
-            recursos_1, makespan_1, gargalo, makespan_real, gargalo_real = calcular_parametros_completos(df, prazo_dias, tolerancia_prazo/100, 5 + num_simulacoes)
+            recursos_1, makespan_1, gargalo, makespan_real, gargalo_real = calcular_parametros_completos(df, prazo_dias, tolerancia_prazo/100, 5 + num_simulacoes, recursos_fixos)
             total_recursos_atual = calcular_total_recursos(recursos_1)
 
             soma_makespan_real+=makespan_real
@@ -332,7 +372,7 @@ if categoria_selecionada == "Compressão Triaxial":
 
             with col_otimizada:
                 # Calcula a diferença em dias
-                diferenca_dias = (makespan_medio / 24) - (makespan_real_medio / 24)
+                diferenca_dias = (makespan_medio / 24) - (makespan_real / 24)
                 
                 # Mostra o resultado com a configuração otimizada e a melhoria
                 st.metric(
@@ -522,6 +562,4 @@ if categoria_selecionada == "Compressão Triaxial":
             st.pyplot(fig_espera)
 else:
     st.info("Por favor, selecione uma categoria de ensaio na barra lateral para começar.")
-
-
 
